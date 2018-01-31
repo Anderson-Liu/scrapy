@@ -440,8 +440,10 @@ class FilesPipeline(MediaPipeline):
         spider.crawler.stats.inc_value('file_status_count/%s' % status, spider=spider)
 
     ### Overridable Interface
+    # def get_media_requests(self, item, info):
+    #     return [Request(x) for x in item.get(self.files_urls_field, [])]
     def get_media_requests(self, item, info):
-        if self.url_filename_dict_field in item.fields:
+        if hasattr(item, 'fields') and self.url_filename_dict_field in item.fields:
             url_filename_dict = item[self.url_filename_dict_field]
         else:
             url_filename_dict = None
