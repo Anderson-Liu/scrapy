@@ -3,15 +3,16 @@ from __future__ import print_function
 import functools
 import logging
 from collections import defaultdict
+
 from twisted.internet.defer import Deferred, DeferredList
 from twisted.python.failure import Failure
 
 from scrapy.settings import Settings
 from scrapy.utils.datatypes import SequenceExclude
 from scrapy.utils.defer import mustbe_deferred, defer_result
-from scrapy.utils.request import request_fingerprint
-from scrapy.utils.misc import arg_to_iter
 from scrapy.utils.log import failure_to_exc_info
+from scrapy.utils.misc import arg_to_iter
+from scrapy.utils.request import request_fingerprint
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +82,7 @@ class MediaPipeline(object):
             requests, url_filename_dict = result
         else:
             requests = result
+            url_filename_dict = None
         requests = arg_to_iter(requests)
         dlist = [self._process_request(r, info, url_filename_dict) for r in requests]
         dfd = DeferredList(dlist, consumeErrors=1)
