@@ -126,7 +126,8 @@ also support for storing files in `Amazon S3`_ and `Google Cloud Storage`_.
 File system storage
 -------------------
 
-The files are stored using a `SHA1 hash`_ of their URLs for the file names.
+The files are stored using a `SHA1 hash`_ of their URLs for the file names.And optionally
+you can also specify your custom file name by add `url_filename_dict` field in your item.
 
 For example, the following image URL::
 
@@ -139,6 +140,15 @@ Whose `SHA1 hash` is::
 Will be downloaded and stored in the following file::
 
    <IMAGES_STORE>/full/3afec3b4765f8f0a07b78f98c07b83f013567a0a.jpg
+
+And if you put `url_filename_dict` field in your item to specify file name::
+
+   item['file_urls'] = ['http://www.example.com/image.jpg']
+   item['url_filename_dict'] = {'http://www.example.com/image.jpg': 'image.jpg'}
+
+Then it will be downloaded and stored in the following file::
+
+    <IMAGES_STORE>/full/image.jpg
 
 Where:
 
@@ -230,14 +240,15 @@ necessary fields, like in this example for Images Pipeline::
         image_urls = scrapy.Field()
         images = scrapy.Field()
 
-If you want to use another field name for the URLs key or for the results key,
+If you want to use another field name for the URLs key or for the results key or for the filename key,
 it is also possible to override it.
 
 For the Files Pipeline, set :setting:`FILES_URLS_FIELD` and/or
-:setting:`FILES_RESULT_FIELD` settings::
+:setting:`FILES_RESULT_FIELD` and/or :setting:`URL_FILENAME_DICT_FIELD` settings::
 
     FILES_URLS_FIELD = 'field_name_for_your_files_urls'
     FILES_RESULT_FIELD = 'field_name_for_your_processed_files'
+    URL_FILENAME_DICT_FIELD = 'field_name_for_your_processed_files'
 
 For the Images Pipeline, set :setting:`IMAGES_URLS_FIELD` and/or
 :setting:`IMAGES_RESULT_FIELD` settings::
