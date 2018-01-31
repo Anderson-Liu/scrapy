@@ -5,14 +5,15 @@ See documentation in topics/media-pipeline.rst
 """
 import functools
 import hashlib
+import logging
 import os
 import os.path
 import time
-import logging
-from email.utils import parsedate_tz, mktime_tz
-from six.moves.urllib.parse import urlparse
 from collections import defaultdict
+from email.utils import parsedate_tz, mktime_tz
+
 import six
+from six.moves.urllib.parse import urlparse
 
 try:
     from cStringIO import StringIO as BytesIO
@@ -440,8 +441,6 @@ class FilesPipeline(MediaPipeline):
         spider.crawler.stats.inc_value('file_status_count/%s' % status, spider=spider)
 
     ### Overridable Interface
-    # def get_media_requests(self, item, info):
-    #     return [Request(x) for x in item.get(self.files_urls_field, [])]
     def get_media_requests(self, item, info):
         if hasattr(item, 'fields') and self.url_filename_dict_field in item.fields:
             url_filename_dict = item[self.url_filename_dict_field]
