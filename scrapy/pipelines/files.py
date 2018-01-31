@@ -86,7 +86,7 @@ class S3FilesStore(object):
     AWS_VERIFY = None
 
     POLICY = 'private'  # Overriden from settings.FILES_STORE_S3_ACL in
-                        # FilesPipeline.from_settings.
+    # FilesPipeline.from_settings.
     HEADERS = {
         'Cache-Control': 'max-age=172800',
     }
@@ -203,7 +203,6 @@ class S3FilesStore(object):
 
 
 class GCSFilesStore(object):
-
     GCS_PROJECT_ID = None
 
     CACHE_CONTROL = 'max-age=172800'
@@ -272,6 +271,7 @@ class FilesPipeline(MediaPipeline):
     }
     DEFAULT_FILES_URLS_FIELD = 'file_urls'
     DEFAULT_FILES_RESULT_FIELD = 'files'
+    DEFAULT_URL_FILENAME_DICT_FIELD = 'url_filename_dict'
 
     def __init__(self, store_uri, download_func=None, settings=None):
         if not store_uri:
@@ -292,11 +292,16 @@ class FilesPipeline(MediaPipeline):
             self.FILES_URLS_FIELD = self.DEFAULT_FILES_URLS_FIELD
         if not hasattr(self, "FILES_RESULT_FIELD"):
             self.FILES_RESULT_FIELD = self.DEFAULT_FILES_RESULT_FIELD
+        if not hasattr(self, "URL_FILENAME_DICT_FIELD"):
+            self.URL_FILENAME_DICT_FIELD = self.DEFAULT_URL_FILENAME_DICT_FIELD
         self.files_urls_field = settings.get(
             resolve('FILES_URLS_FIELD'), self.FILES_URLS_FIELD
         )
         self.files_result_field = settings.get(
             resolve('FILES_RESULT_FIELD'), self.FILES_RESULT_FIELD
+        )
+        self.url_filename_dict_field = settings.get(
+            resolve('URL_FILENAME_DICT_FIELD'), self.URL_FILENAME_DICT_FIELD
         )
 
         super(FilesPipeline, self).__init__(download_func=download_func, settings=settings)
@@ -436,7 +441,11 @@ class FilesPipeline(MediaPipeline):
 
     ### Overridable Interface
     def get_media_requests(self, item, info):
-        return [Request(x) for x in item.get(self.files_urls_field, [])]
+        if self.url_filename_dict_field in item.fields:
+            url_filename_dict = item[self.url_filename_dict_field]
+        else:
+            url_filename_dict = None
+        return [Request(x) for x in item.get(self.files_urls_field, [])], url_filename_dict
 
     def file_downloaded(self, response, request, info):
         path = self.file_path(request, response=response, info=info)
@@ -472,7 +481,6 @@ class FilesPipeline(MediaPipeline):
             _warn()
             return self.file_key(url)
         ## end of deprecation warning block
-
 
         if url_filename_dict is None:
             media_guid = hashlib.sha1(to_bytes(url)).hexdigest()  # change to request.url after deprecation

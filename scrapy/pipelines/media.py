@@ -76,8 +76,12 @@ class MediaPipeline(object):
 
     def process_item(self, item, spider):
         info = self.spiderinfo
-        requests = arg_to_iter(self.get_media_requests(item, info))
-        url_filename_dict = item['url_filename_dict']
+        result = self.get_media_requests(item, info)
+        if len(result) == 2:
+            requests, url_filename_dict = result
+        else:
+            requests = result
+        requests = arg_to_iter(requests)
         dlist = [self._process_request(r, info, url_filename_dict) for r in requests]
         dfd = DeferredList(dlist, consumeErrors=1)
         return dfd.addCallback(self.item_completed, item, info)
