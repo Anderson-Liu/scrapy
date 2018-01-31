@@ -78,7 +78,7 @@ class MediaPipeline(object):
     def process_item(self, item, spider):
         info = self.spiderinfo
         result = self.get_media_requests(item, info)
-        if isinstance(result, list) and len(result) == 2 and isinstance(result[1], dict):
+        if isinstance(result, tuple) and len(result) == 2:
             requests, url_filename_dict = result
         else:
             requests = result
