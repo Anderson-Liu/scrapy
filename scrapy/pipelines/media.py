@@ -77,11 +77,12 @@ class MediaPipeline(object):
     def process_item(self, item, spider):
         info = self.spiderinfo
         requests = arg_to_iter(self.get_media_requests(item, info))
-        dlist = [self._process_request(r, info) for r in requests]
+        url_filename_dict = item['url_filename_dict']
+        dlist = [self._process_request(r, info, url_filename_dict) for r in requests]
         dfd = DeferredList(dlist, consumeErrors=1)
         return dfd.addCallback(self.item_completed, item, info)
 
-    def _process_request(self, request, info):
+    def _process_request(self, request, info, url_filename_dict):
         fp = request_fingerprint(request)
         cb = request.callback or (lambda _: _)
         eb = request.errback
@@ -102,7 +103,7 @@ class MediaPipeline(object):
 
         # Download request checking media_to_download hook output first
         info.downloading.add(fp)
-        dfd = mustbe_deferred(self.media_to_download, request, info)
+        dfd = mustbe_deferred(self.media_to_download, request, info, url_filename_dict)
         dfd.addCallback(self._check_media_to_download, request, info)
         dfd.addBoth(self._cache_result_and_execute_waiters, fp, info)
         dfd.addErrback(lambda f: logger.error(
@@ -145,7 +146,7 @@ class MediaPipeline(object):
             defer_result(result).chainDeferred(wad)
 
     ### Overridable Interface
-    def media_to_download(self, request, info):
+    def media_to_download(self, request, info, url_filename_dict):
         """Check request before starting download"""
         pass
 

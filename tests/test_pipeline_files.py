@@ -43,8 +43,9 @@ class FilesPipelineTestCase(unittest.TestCase):
         file_path = self.pipeline.file_path
         self.assertEqual(file_path(Request("https://dev.mydeco.com/mydeco.pdf")),
                          'full/c9b564df929f4bc635bdd19fde4f3d4847c757c5.pdf')
-        self.assertEqual(file_path(Request("http://www.maddiebrown.co.uk///catalogue-items//image_54642_12175_95307.txt")),
-                         'full/4ce274dd83db0368bafd7e406f382ae088e39219.txt')
+        self.assertEqual(
+            file_path(Request("http://www.maddiebrown.co.uk///catalogue-items//image_54642_12175_95307.txt")),
+            'full/4ce274dd83db0368bafd7e406f382ae088e39219.txt')
         self.assertEqual(file_path(Request("https://dev.mydeco.com/two/dirs/with%20spaces%2Bsigns.doc")),
                          'full/94ccc495a17b9ac5d40e3eabf3afcb8c2c9b9e1a.doc')
         self.assertEqual(file_path(Request("http://www.dfsonline.co.uk/get_prod_image.php?img=status_0907_mdm.jpg")),
@@ -57,6 +58,19 @@ class FilesPipelineTestCase(unittest.TestCase):
                                    response=Response("http://www.dorma.co.uk/images/product_details/2532"),
                                    info=object()),
                          'full/244e0dd7d96a3b7b01f54eded250c9e272577aa1')
+
+        self.assertEqual(file_path(Request("https://dev.mydeco.com/mydeco.pdf"),
+                                   url_filename_dict={'https://dev.mydeco.com/mydeco.pdf': 'mydeco.pdf'}),
+                         'full/mydeco.pdf')
+        self.assertEqual(
+            file_path(Request("http://www.maddiebrown.co.uk///catalogue-items//image_54642_12175_95307.txt"),
+                      url_filename_dict={
+                          'http://www.maddiebrown.co.uk///catalogue-items//image_54642_12175_95307.txt': 'image_54642_12175_95307.txt'}),
+            'full/image_54642_12175_95307.txt')
+        self.assertEqual(file_path(Request("https://dev.mydeco.com/two/dirs/with%20spaces%2Bsigns.doc"),
+                                   url_filename_dict={
+                                       "https://dev.mydeco.com/two/dirs/with%20spaces%2Bsigns.doc": "with_spaces_signs.doc"}),
+                         'full/with_spaces_signs.doc')
 
     def test_fs_store(self):
         assert isinstance(self.pipeline.store, FSFilesStore)
@@ -273,6 +287,7 @@ class FilesPipelineTestCaseCustomSettings(unittest.TestCase):
         If there are no settings for subclass and no subclass attributes, pipeline should use
         attributes of base class.
         """
+
         class UserDefinedFilesPipeline(FilesPipeline):
             pass
 
@@ -287,6 +302,7 @@ class FilesPipelineTestCaseCustomSettings(unittest.TestCase):
         If there are custom settings for subclass and NO class attributes, pipeline should use custom
         settings.
         """
+
         class UserDefinedFilesPipeline(FilesPipeline):
             pass
 
@@ -308,7 +324,7 @@ class FilesPipelineTestCaseCustomSettings(unittest.TestCase):
         prefix = pipeline_cls.__name__.upper()
         settings = self._generate_fake_settings(prefix=prefix)
         user_pipeline = pipeline_cls.from_settings(Settings(settings))
-        for pipe_cls_attr, settings_attr, pipe_inst_attr  in self.file_cls_attr_settings_map:
+        for pipe_cls_attr, settings_attr, pipe_inst_attr in self.file_cls_attr_settings_map:
             custom_value = settings.get(prefix + "_" + settings_attr)
             self.assertNotEqual(custom_value, self.default_cls_settings[pipe_cls_attr])
             self.assertEqual(getattr(user_pipeline, pipe_inst_attr), custom_value)
@@ -321,7 +337,6 @@ class FilesPipelineTestCaseCustomSettings(unittest.TestCase):
         pipeline = UserDefinedFilesPipeline.from_settings(Settings({"FILES_STORE": self.tempdir}))
         self.assertEqual(pipeline.files_result_field, "this")
         self.assertEqual(pipeline.files_urls_field, "that")
-
 
     def test_user_defined_subclass_default_key_names(self):
         """Test situation when user defines subclass of FilesPipeline,
@@ -394,7 +409,7 @@ class TestGCSFilesStore(unittest.TestCase):
         self.assertIn('checksum', s)
         self.assertEqual(s['checksum'], 'zc2oVgXkbQr2EQdSdw3OPA==')
         u = urlparse(uri)
-        content, blob = get_gcs_content_and_delete(u.hostname, u.path[1:]+path)
+        content, blob = get_gcs_content_and_delete(u.hostname, u.path[1:] + path)
         self.assertEqual(content, data)
         self.assertEqual(blob.metadata, {'foo': 'bar'})
         self.assertEqual(blob.cache_control, GCSFilesStore.CACHE_CONTROL)

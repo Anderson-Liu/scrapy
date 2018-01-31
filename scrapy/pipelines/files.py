@@ -326,7 +326,7 @@ class FilesPipeline(MediaPipeline):
         store_cls = self.STORE_SCHEMES[scheme]
         return store_cls(uri)
 
-    def media_to_download(self, request, info):
+    def media_to_download(self, request, info, url_filename_dict):
         def _onsuccess(result):
             if not result:
                 return  # returning None force download
@@ -353,7 +353,7 @@ class FilesPipeline(MediaPipeline):
             checksum = result.get('checksum', None)
             return {'url': request.url, 'path': path, 'checksum': checksum}
 
-        path = self.file_path(request, info=info)
+        path = self.file_path(request, info=info, url_filename_dict=url_filename_dict)
         dfd = defer.maybeDeferred(self.store.stat_file, path, info)
         dfd.addCallbacks(_onsuccess, lambda _: None)
         dfd.addErrback(
@@ -451,7 +451,7 @@ class FilesPipeline(MediaPipeline):
             item[self.files_result_field] = [x for ok, x in results if ok]
         return item
 
-    def file_path(self, request, response=None, info=None):
+    def file_path(self, request, response=None, info=None, url_filename_dict=None):
         ## start of deprecation warning block (can be removed in the future)
         def _warn():
             from scrapy.exceptions import ScrapyDeprecationWarning
@@ -473,9 +473,13 @@ class FilesPipeline(MediaPipeline):
             return self.file_key(url)
         ## end of deprecation warning block
 
-        media_guid = hashlib.sha1(to_bytes(url)).hexdigest()  # change to request.url after deprecation
-        media_ext = os.path.splitext(url)[1]  # change to request.url after deprecation
-        return 'full/%s%s' % (media_guid, media_ext)
+
+        if url_filename_dict is None:
+            media_guid = hashlib.sha1(to_bytes(url)).hexdigest()  # change to request.url after deprecation
+            media_ext = os.path.splitext(url)[1]  # change to request.url after deprecation
+            return 'full/%s%s' % (media_guid, media_ext)
+        else:
+            return 'full/%s' % (url_filename_dict[url])
 
     # deprecated
     def file_key(self, url):
