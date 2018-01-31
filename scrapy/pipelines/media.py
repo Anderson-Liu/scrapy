@@ -78,7 +78,7 @@ class MediaPipeline(object):
     def process_item(self, item, spider):
         info = self.spiderinfo
         result = self.get_media_requests(item, info)
-        if len(result) == 2:
+        if len(result) == 2 and isinstance(result[1], dict):
             requests, url_filename_dict = result
         else:
             requests = result
@@ -88,7 +88,7 @@ class MediaPipeline(object):
         dfd = DeferredList(dlist, consumeErrors=1)
         return dfd.addCallback(self.item_completed, item, info)
 
-    def _process_request(self, request, info, url_filename_dict):
+    def _process_request(self, request, info, url_filename_dict=None):
         fp = request_fingerprint(request)
         cb = request.callback or (lambda _: _)
         eb = request.errback
@@ -152,7 +152,7 @@ class MediaPipeline(object):
             defer_result(result).chainDeferred(wad)
 
     ### Overridable Interface
-    def media_to_download(self, request, info, url_filename_dict):
+    def media_to_download(self, request, info, url_filename_dict=None):
         """Check request before starting download"""
         pass
 

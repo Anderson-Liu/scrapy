@@ -332,7 +332,7 @@ class FilesPipeline(MediaPipeline):
         store_cls = self.STORE_SCHEMES[scheme]
         return store_cls(uri)
 
-    def media_to_download(self, request, info, url_filename_dict):
+    def media_to_download(self, request, info, url_filename_dict=None):
         def _onsuccess(result):
             if not result:
                 return  # returning None force download
