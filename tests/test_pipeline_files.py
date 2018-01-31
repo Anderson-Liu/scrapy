@@ -71,6 +71,14 @@ class FilesPipelineTestCase(unittest.TestCase):
                                    url_filename_dict={
                                        "https://dev.mydeco.com/two/dirs/with%20spaces%2Bsigns.doc": "with_spaces_signs.doc"}),
                          'full/with_spaces_signs.doc')
+        self.assertEqual(file_path(Request("http://www.dorma.co.uk/images/product_details/2532/"), url_filename_dict={
+            "http://www.dorma.co.uk/images/product_details/2532/": '2532.html'}),
+                         'full/2532.html')
+        self.assertEqual(file_path(Request("http://www.dorma.co.uk/images/product_details/2532"),
+                                   response=Response("http://www.dorma.co.uk/images/product_details/2532"),
+                                   info=object(), url_filename_dict={
+                "http://www.dorma.co.uk/images/product_details/2532": '2532.html'}),
+                         'full/2532.html')
 
     def test_fs_store(self):
         assert isinstance(self.pipeline.store, FSFilesStore)
